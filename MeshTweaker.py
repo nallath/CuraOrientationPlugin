@@ -39,6 +39,7 @@ class Tweak:
         self.workflow(mesh, bi_algorithmic, verbose, CA, n)
         
     def workflow(self, mesh, bi_algorithmic, verbose, CA, n):
+
         content = self.arrange_mesh(mesh)
         arcum_time = dialg_time = lit_time=0
                 
@@ -53,14 +54,12 @@ class Tweak:
         arcum_time = time.time()
         orientatations = self.area_cumulation(content, n)
         arcum_time = time.time() - arcum_time
-        
         if bi_algorithmic:
             dialg_time = time.time()
             orientatations += self.egde_plus_vertex(mesh, 12)
             dialg_time = time.time() - dialg_time
             
             orientatations = self.remove_duplicates(orientatations)
-  
         if verbose:
             print("Examine {} orientations:".format(len(orientatations)))
             print("  %-32s %-18s%-18s%-18s " %("Area Vector:", "Touching Area:", "Overhang:", "Unprintability:"))
@@ -177,8 +176,9 @@ Time-stats of algorithm:
         
         normn=math.sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2])
         anti_n = [float(-i) for i in n]
-        
+
         for li in content:
+            time.sleep(0)  # Yield, so other threads get a bit of breathing space.
             a=li[0]
             norma=math.sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2])
             if norma < 2:
