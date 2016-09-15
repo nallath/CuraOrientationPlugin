@@ -12,7 +12,6 @@ class CalculateOrientationJob(Job):
         self._nodes = nodes
 
     def run(self):
-
         for node in self._nodes:
             transformed_vertices = node.getMeshDataTransformed().getVertices()
             result = Tweak(transformed_vertices, bi_algorithmic=True, verbose=False)

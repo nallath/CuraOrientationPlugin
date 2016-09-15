@@ -84,7 +84,7 @@ class Tweak:
             if verbose:
                 print("  %-32s %-18s%-18s%-18s " %(str(sn), round(ret[0],3), 
                       round(ret[1],3), round(F,3)))
-
+            time.sleep(0)  # Yield, so other threads get a bit of breathing space.
             
         lit_time = time.time() - lit_time
 
@@ -136,6 +136,7 @@ Time-stats of algorithm:
                 a=[round(v[1]*w[2]-v[2]*w[1],6), round(v[2]*w[0]-v[0]*w[2],6), round(v[0]*w[1]-v[1]*w[0],6)]
                 content.append([a,face[0],face[1],face[2]])
                 face=[]
+            time.sleep(0)  # Yield, so other threads get a bit of breathing space.
         return content
 
     
@@ -146,6 +147,7 @@ Time-stats of algorithm:
             z=min([li[1][2],li[2][2],li[3][2]])
             if z<amin:
                 amin=z
+            time.sleep(0)  # Yield, so other threads get a bit of breathing space.
         return amin
 
 
@@ -161,6 +163,7 @@ Time-stats of algorithm:
             an=min([a1,a2,a3])
             if an<amin:
                 amin=an
+            time.sleep(0)  # Yield, so other threads get a bit of breathing space.
         return amin
 
         
@@ -193,7 +196,8 @@ Time-stats of algorithm:
                     Overhang += ali
                 else:
                     Grundfl += ali
-                    Touching_Length += self.get_touching_line([a1,a2,a3], li, touching_height)                    
+                    Touching_Length += self.get_touching_line([a1,a2,a3], li, touching_height)
+            time.sleep(0)  # Yield, so other threads get a bit of breathing space.
         return [Grundfl, Overhang, Touching_Length]
     
     def get_touching_line(self, a, li, touching_height):
@@ -206,6 +210,7 @@ Time-stats of algorithm:
             return 0
         length = 0
         for p1, p2 in combs:
+            time.sleep(0)  # Yield, so other threads get a bit of breathing space.
             length += math.sqrt((p2[0]-p1[0])**2 + (p2[1]-p1[1])**2 
                                         + (p2[2]-p1[2])**2)
         return length
@@ -227,7 +232,8 @@ Time-stats of algorithm:
                     x = [v[1]*w[2]-v[2]*w[1],v[2]*w[0]-v[0]*w[2],v[0]*w[1]-v[1]*w[0]]
                     A = math.sqrt(x[0]*x[0] + x[1]*x[1] + x[2]*x[2])/2
                     if A>0.01: # Smaller areas don't worry 
-                        orient[tuple(an)] += A                        
+                        orient[tuple(an)] += A
+                        time.sleep(0)  # Yield, so other threads get a bit of breathing space.
         sorted_by_area = sorted(orient.items(), key=operator.itemgetter(1), reverse=True)
         top_n = sorted_by_area[:best_n]
         return [[list(el[0]), float("{:2f}".format(el[1]))] for el in top_n]
@@ -284,6 +290,7 @@ Time-stats of algorithm:
         for i in o:
             duplicate = None
             for j in orientations:
+                time.sleep(0)  # Yield, so other threads get a bit of breathing space.
                 dif = math.sqrt( (i[0][0]-j[0][0])**2 + (i[0][1]-j[0][1])**2 + (i[0][2]-j[0][2])**2 )
                 if dif < 0.001:
                     duplicate = True
