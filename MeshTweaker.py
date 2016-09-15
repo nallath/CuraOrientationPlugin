@@ -233,7 +233,7 @@ Time-stats of algorithm:
                     A = math.sqrt(x[0]*x[0] + x[1]*x[1] + x[2]*x[2])/2
                     if A>0.01: # Smaller areas don't worry 
                         orient[tuple(an)] += A
-                        time.sleep(0)  # Yield, so other threads get a bit of breathing space.
+            time.sleep(0)  # Yield, so other threads get a bit of breathing space.
         sorted_by_area = sorted(orient.items(), key=operator.itemgetter(1), reverse=True)
         top_n = sorted_by_area[:best_n]
         return [[list(el[0]), float("{:2f}".format(el[1]))] for el in top_n]
@@ -254,6 +254,7 @@ Time-stats of algorithm:
 
         for an in lst:
             orient[tuple(an)] += 1
+            time.sleep(0)  # Yield, so other threads get a bit of breathing space.
         sorted_by_rate = sorted(orient.items(), key=operator.itemgetter(1), reverse=True)
         top_n = filter(lambda x: x[1]>2, sorted_by_rate[:best_n])
         return [[list(el[0]), el[1]] for el in top_n]
