@@ -14,7 +14,7 @@ class CalculateOrientationJob(Job):
     def run(self):
         for node in self._nodes:
             transformed_vertices = node.getMeshDataTransformed().getVertices()
-            result = Tweak(transformed_vertices, bi_algorithmic=True, verbose=False)
+            result = Tweak(transformed_vertices, bi_algorithmic=False, verbose=False)
 
             # Convert the new orientation into quaternion
             new_orientation = Quaternion.fromAngleAxis(result.phi, Vector(-result.v[0], -result.v[1], -result.v[2]))
