@@ -1,13 +1,14 @@
 # Python 2.7 and 3.5
 # Author: Christoph Schranz, Salzburg Research
 
-import sys
+#import sys
 import math
-import random
-import time
-import operator
-import itertools
-from collections import defaultdict
+#import random
+from time import time, sleep
+from collections import Counter
+
+import numpy as np
+#from numpy.core.umath_tests import inner1d
 
 class Tweak:
     """ The Tweaker is an auto rotate class for 3D objects.
@@ -33,288 +34,276 @@ class Tweak:
     And the relative unprintability of the tweaked object. If this value is
      greater than 15, a support structure is suggested.
         """
-    def __init__(self, mesh, bi_algorithmic, verbose, CA=40, n=[0,0,-1]):
+    def __init__(self, content, extended_mode=False, verbose=True, CA=45, n=[0,0,-1]):
         
-        self.bi_algorithmic = bi_algorithmic
-        self.workflow(mesh, bi_algorithmic, verbose, CA, n)
+        self.extended_mode = extended_mode
+        initial_n = -np.array(n, dtype=np.float64)
         
-    def workflow(self, mesh, bi_algorithmic, verbose, CA, n):
+        t_start = time()
+        mesh = self.preprocess(content)
+        t_pre = time()
+        
 
-        content = self.arrange_mesh(mesh)
-        arcum_time = dialg_time = lit_time=0
-                
-        ## Calculating initial printability
-        amin = self.approachfirstvertex(content)
-        lit  = self.lithograph(content,[0,0,1],amin,CA)
-        liste = [[[0,0,1],lit[0], lit[1]]]
-        ## vector: , groundA: , OverhangA: %s", liste[0]
-
+        ## Calculating initial parameters
+        bottom, overhang, contour = self.lithograph(mesh, initial_n, CA)
+        t_ini = time() 
+        
+        # The initial alignment gets a bonus of 0.05, to neglect rounding errors
+        results = np.array([initial_n, bottom, 
+                    overhang, self.target_function(bottom, overhang, contour) - 0.05])
+          
         ## Searching promising orientations: 
-        ## Format: [[vector1, gesamtA1],...[vector5, gesamtA5]]: %s", o)
-        arcum_time = time.time()
-        orientatations = self.area_cumulation(content, n)
-        arcum_time = time.time() - arcum_time
-        if bi_algorithmic:
-            dialg_time = time.time()
-            orientatations += self.egde_plus_vertex(mesh, 12)
-            dialg_time = time.time() - dialg_time
+        orientations = self.area_cumulation(mesh, n)
+        t_areacum = time()
+#        if extended_mode: # This part is not implemented yet
+#            dialg_time = time()
+#            orientations += self.egde_plus_vertex(mesh, 12)
+#            orientations = self.remove_duplicates(orientations)
+#            dialg_time = time() - dialg_time
             
-            orientatations = self.remove_duplicates(orientatations)
+        t_ds = time()
         if verbose:
-            print("Examine {} orientations:".format(len(orientatations)))
-            print("  %-32s %-18s%-18s%-18s " %("Area Vector:", "Touching Area:", "Overhang:", "Unprintability:"))
-            
-        # Calculate the printability of each orientation
-        lit_time = time.time()
-        Unprintability=sys.maxsize
-        for side in orientatations:
-            sn = [float("{:6f}".format(-i)) for i in side[0]]
-            ## vector: sn, cum_A: side[1]
-            amin=self.approachvertex(content, side[0])
-            ret=self.lithograph(content, sn, amin, CA)
-            liste.append([sn, ret[0], ret[1], ret[2]])   #[Vector, touching area, Overhang, Touching_Line]
-            
-            # target function
-            F = self.target_function(ret[0], ret[1], ret[2]) # touching area: i[1], overhang: i[2], touching line i[3]
-            if F<Unprintability - 0.05:
-                Unprintability=F
-                bestside = [sn, ret[0]+ret[2], ret[1]]
-
+            print("Examine {} orientations:".format(len(orientations)))
+            print("  %-32s %-10s%-10s%-10s " %("Alignment:", 
+            "Bottom:", "Overhang:", "Unprintability:"))
+        
+        
+        # Calculate the printability for each orientation
+        for side in orientations:
+            orientation = np.array([float("{:6f}".format(-i)) for i in side[0]])
+            mesh = self.project_verteces(mesh, orientation)
+            bottom, overhang, contour = self.lithograph(mesh, orientation, CA)
+            Unprintability = self.target_function(bottom, overhang, contour)
+            results = np.vstack((results, [orientation, bottom,
+                            overhang, Unprintability]))                        
             if verbose:
-                print("  %-32s %-18s%-18s%-18s " %(str(sn), round(ret[0],3), 
-                      round(ret[1],3), round(F,3)))
-            time.sleep(0)  # Yield, so other threads get a bit of breathing space.
+                print("  %-32s %-10s%-10s%-10s " %(str(orientation), 
+                round(bottom, 3),round(overhang,3), round(Unprintability,3)))
+        t_lit = time()               
+               
+        # Best alignment
+        best_alignment = results[np.argmin(results[:, 3])]
             
-        lit_time = time.time() - lit_time
-
+           
         if verbose:
             print("""
 Time-stats of algorithm:
+  Preprocessing:    \t{pre:2f} s
+  Initial Side:     \t{ini:2f} s
   Area Cumulation:  \t{ac:2f} s
-  Edge plus Vertex:  \t{da:2f} s
+  Death Star:       \t{ds:2f} s
   Lithography Time:  \t{lt:2f} s  
   Total Time:        \t{tot:2f} s
-""".format(ac=arcum_time, da=dialg_time, lt=lit_time, 
-           tot=arcum_time + dialg_time + lit_time))  
+""".format(pre=t_pre-t_start, ini=t_ini-t_pre, ac=t_areacum-t_ini, 
+           ds=t_ds-t_areacum, lt=t_lit-t_ds, tot=t_lit-t_start))  
            
-           
-        if bestside:
-            [v,phi,R] = self.euler(bestside)
+        if len(best_alignment) > 0:
+            [v, phi, Matrix] = self.euler(best_alignment)
+            self.Euler = [[v[0],v[1],v[2]], phi]
+            self.Matrix = Matrix
             
-        self.v=v
-        self.phi=phi
-        self.R=R
-        self.Unprintability = Unprintability
-        self.Zn=bestside[0]
+            self.Alignment=best_alignment[0]
+            self.BottomArea = best_alignment[1]
+            self.Overhang = best_alignment[2]
+            self.Unprintability = best_alignment[3]
+            
         return None
 
 
-
-    def target_function(self, touching, overhang, line):
+    def target_function(self, bottom, overhang, contour):
         '''This function returns the printability with the touching area and overhang given.'''
-        ABSLIMIT=100             # Some values for scaling the printability
-        RELLIMIT=1
-        LINE_FAKTOR = 0.5
-        touching_line = line * LINE_FAKTOR
-        F = (overhang/ABSLIMIT) + (overhang / (touching+touching_line) /RELLIMIT)
-        ret = float("{:f}".format(F))
-        return ret
+        ABSOLUTE = 100             # Some values for scaling the printability
+        RELATIVE = 1
+        CONTOUR = 1 + 0.5*contour
+        Unprintability = (overhang/ABSOLUTE) + (overhang / (CONTOUR+bottom) /RELATIVE)
+        return Unprintability
         
         
-    def arrange_mesh(self, mesh):
+    def preprocess(self, content):
         '''The Tweaker needs the mesh format of the object with the normals of the facetts.'''
-        face=[]
-        content=[]
-        i=0
-        for li in mesh:      
-            face.append(li)
-            i+=1
-            if i%3==0:
-                v=[face[1][0]-face[0][0],face[1][1]-face[0][1],face[1][2]-face[0][2]]
-                w=[face[2][0]-face[0][0],face[2][1]-face[0][1],face[2][2]-face[0][2]]
-                a=[round(v[1]*w[2]-v[2]*w[1],6), round(v[2]*w[0]-v[0]*w[2],6), round(v[0]*w[1]-v[1]*w[0],6)]
-                content.append([a,face[0],face[1],face[2]])
-                face=[]
-            time.sleep(0)  # Yield, so other threads get a bit of breathing space.
-        return content
+        # creating a numpy mesh array TODO check float64
+        mesh = np.array(content, dtype=np.float64)
+        
+        # prefix area vector, if not already done (e.g. in STL format)
+        if len(mesh[0]) == 3:
+            row_number = int(len(content)/3)
+            mesh = mesh.reshape(row_number,3,3)
+            v0=mesh[:,0,:]
+            v1=mesh[:,1,:]
+            v2=mesh[:,2,:]
+            normals = np.cross( np.subtract(v1,v0), np.subtract(v2,v0)).reshape(row_number,1,3)
+            mesh = np.hstack((normals,mesh))
+        
+        face_count = len(mesh)
+        
+        # calc area size and normalise area vector
+        area_size = np.sum(np.abs(mesh[:,0,:])**2, axis=-1)**0.5
+        mesh[:,0,:] = mesh[:,0,:]/area_size.reshape(face_count, 1)
+        area_size = area_size/2
 
-    
-    def approachfirstvertex(self,content):
-        '''Returning the lowest z value'''
-        amin=sys.maxsize
-        for li in content:
-            z=min([li[1][2],li[2][2],li[3][2]])
-            if z<amin:
-                amin=z
-            time.sleep(0)  # Yield, so other threads get a bit of breathing space.
-        return amin
+        # append columns with a_min, area_size
+        addendum = np.zeros((face_count, 2, 3))
+        addendum[:,0,0] = mesh[:,1,2]
+        addendum[:,0,1] = mesh[:,2,2]
+        addendum[:,0,2] = mesh[:,3,2]
+        
+        addendum[:,1,0] = area_size.reshape(face_count)
+        addendum[:,1,1] = np.max(mesh[:,1:4,2], axis=1)
+        addendum[:,1,2] = np.median(mesh[:,1:4,2], axis=1)
+        mesh = np.hstack((mesh, addendum))
+
+        sleep(0)  # Yield, so other threads get a bit of breathing space.
+        return mesh
 
 
-    def approachvertex(self, content, n):
+    def project_verteces(self, mesh, orientation):
         '''Returning the lowest value regarding vector n'''
-        amin=sys.maxsize
-        n=[-i for i in n]
-        normn=math.sqrt(n[0]**2 + n[1]**2 + n[2]**2)
-        for li in content:
-            a1=(li[1][0]*n[0] +li[1][1]*n[1] +li[1][2]*n[2])/normn
-            a2=(li[2][0]*n[0] +li[2][1]*n[1] +li[2][2]*n[2])/normn
-            a3=(li[3][0]*n[0] +li[3][1]*n[1] +li[3][2]*n[2])/normn           
-            an=min([a1,a2,a3])
-            if an<amin:
-                amin=an
-            time.sleep(0)  # Yield, so other threads get a bit of breathing space.
-        return amin
-
+        mesh[:,4,0] = np.inner(mesh[:,1,:], orientation)
+        mesh[:,4,1] = np.inner(mesh[:,2,:], orientation)
+        mesh[:,4,2] = np.inner(mesh[:,3,:], orientation)
+               
+        mesh[:,5,1] = np.max(mesh[:,4,:], axis=1)
+        mesh[:,5,2] = np.median(mesh[:,4,:], axis=1)
+        sleep(0)  # Yield, so other threads get a bit of breathing space.
+        return mesh
         
-    def lithograph(self, content, n, amin, CA):
+        
+    def lithograph(self, mesh, orientation, CA):
         '''Calculating touching areas and overhangs regarding the vector n'''
-        Overhang=1
-        alpha=-math.cos((90-CA)*math.pi/180)
-        Grundfl=1
-        Touching_Length = 1
-        touching_height = amin+0.15
+        overhang = 0
+        bottom = 0
+        ascent = -np.cos((90-CA)*np.pi/180)
+        anti_orient = -np.array(orientation)
         
-        normn=math.sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2])
-        anti_n = [float(-i) for i in n]
+        # remove small facets
+        mesh = np.array([face for face in mesh if face[5,0] >= 2])
 
-        for li in content:
-            time.sleep(0)  # Yield, so other threads get a bit of breathing space.
-            a=li[0]
-            norma=math.sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2])
-            if norma < 2:
-                continue
-            if alpha > (a[0]*n[0] +a[1]*n[1] +a[2]*n[2])/(norma*normn):
-                a1=(li[1][0]*n[0] +li[1][1]*n[1] +li[1][2]*n[2])/normn
-                a2=(li[2][0]*n[0] +li[2][1]*n[1] +li[2][2]*n[2])/normn
-                a3=(li[3][0]*n[0] +li[3][1]*n[1] +li[3][2]*n[2])/normn 
-                an=min([a1,a2,a3])
-                ali=round(abs(li[0][0]*n[0] +li[0][1]*n[1] +li[0][2]*n[2])/2, 4)
-                
-                if an > touching_height:
-                    if 0.00001 < math.fabs(a[0]-anti_n[0]) + math.fabs(a[1]-anti_n[1]) + math.fabs(a[2]-anti_n[2]):
-                        ali = 0.8 * ali
-                    Overhang += ali
-                else:
-                    Grundfl += ali
-                    Touching_Length += self.get_touching_line([a1,a2,a3], li, touching_height)
-            time.sleep(0)  # Yield, so other threads get a bit of breathing space.
-        return [Grundfl, Overhang, Touching_Length]
-    
-    def get_touching_line(self, a, li, touching_height):
-        touch_lst = list()
-        for i in range(3):
-            if a[i] < touching_height:
-                touch_lst.append(li[1+i])
-        combs = list(itertools.combinations(touch_lst, 2))
-        if len(combs) <= 1:
-            return 0
-        length = 0
-        for p1, p2 in combs:
-            time.sleep(0)  # Yield, so other threads get a bit of breathing space.
-            length += math.sqrt((p2[0]-p1[0])**2 + (p2[1]-p1[1])**2 
-                                        + (p2[2]-p1[2])**2)
-        return length
+        # filter bottom area
+        total_min = np.amin(mesh[:,4,:])
+        bottoms = np.array([face for face in mesh
+                if face[5,1] < total_min + 0.15])
+        if len(bottoms) > 0:
+            bottom = np.sum(bottoms[:,5,0]) 
+        else: bottom = 0
+        
+        # filter overhangs
+        overhangs = np.array([face for face in mesh 
+                    if np.inner(face[0], orientation) < ascent])
+        overhangs = np.array([face for face in overhangs
+                    if face[5,1] > total_min + 0.15])
+        plafonds = np.array([face for face in overhangs
+                    if (face[0,:]==anti_orient).all()])
+        if len(plafonds) > 0:
+            plafond = np.sum(plafonds[:,5,0]) 
+        else: plafond = 0
+        if len(overhangs) > 0:  
+            overhang = np.sum(overhangs[:,5,0]) - 0.2*plafond  
+        else: overhang = 0
+        
+        # filter the total length of the bottom area's contour
+        if self.extended_mode:
+            contours = np.array([face for face in mesh
+                    if face[5,2] < total_min + 0.15 < face[5,1]])
+            if len(contours) > 0:
+                con = np.array([np.subtract(face[1 + np.argsort(face[4,:])[0],:],
+                                            face[1 + np.argsort(face[4,:])[1],:])
+                                            for face in contours])
+                contours = np.sum(np.abs(con)**2, axis=-1)**0.5
+                contour = np.sum(contours)     
+        else: # considering the bottom area as square, bottom=a**2 ^ contour=4*a
+            contour = 4*np.sqrt(bottom)
 
-    def area_cumulation(self, content, n):
+            
+        sleep(0)  # Yield, so other threads get a bit of breathing space.
+        print(bottom, overhang, contour)
+        return bottom, overhang, contour
+
+
+    def area_cumulation(self, mesh, n):
         '''Searching best options out of the objects area vector field'''
-        if self.bi_algorithmic: best_n = 7
+        if self.extended_mode: best_n = 7
         else: best_n = 5
-        orient = defaultdict(lambda: 0) #list()
-        for li in content:       # Cumulate areavectors
-            an = li[0]
-            norma = math.sqrt(an[0]*an[0] + an[1]*an[1] + an[2]*an[2])
-            
-            if norma!=0:
-                an = [round(i/norma, 6) for i in an]
-                if an != n:
-                    v = [li[2][0]-li[1][0], li[2][1]-li[1][1], li[2][2]-li[1][2]]
-                    w = [li[2][0]-li[3][0], li[2][1]-li[3][1], li[2][2]-li[3][2]]
-                    x = [v[1]*w[2]-v[2]*w[1],v[2]*w[0]-v[0]*w[2],v[0]*w[1]-v[1]*w[0]]
-                    A = math.sqrt(x[0]*x[0] + x[1]*x[1] + x[2]*x[2])/2
-                    if A>0.01: # Smaller areas don't worry 
-                        orient[tuple(an)] += A
-            time.sleep(0)  # Yield, so other threads get a bit of breathing space.
-        sorted_by_area = sorted(orient.items(), key=operator.itemgetter(1), reverse=True)
-        top_n = sorted_by_area[:best_n]
-        return [[list(el[0]), float("{:2f}".format(el[1]))] for el in top_n]
+        orient = Counter()
+        
+        align = mesh[:,0,:]
+        for index in range(len(mesh)):       # Cumulate areavectors
+            orient[tuple(align[index])] += mesh[index, 5, 0]
+
+        top_n = orient.most_common(best_n)
+        sleep(0)  # Yield, so other threads get a bit of breathing space.
+        return [[[0.0,0.0,1.0], 0.0]] + [[list(el[0]), float("{:2f}".format(el[1]))] for el in top_n]
        
-
+       
     def egde_plus_vertex(self, mesh, best_n):
-        '''Searching normals or random edges with one vertice'''
-        vcount = len(mesh)
-        # Small files need more calculations
-        if vcount < 10000: it = 5
-        elif vcount < 25000: it = 2
-        else: it = 1           
-        self.mesh = mesh
-        randlist = map(self.random_tri, list(range(vcount))*it)  
-        lst = map(self.calc_random_normal, randlist)
-        lst = filter(lambda x: x is not None, lst)
-        orient = defaultdict(lambda: 0)
-
-        for an in lst:
-            orient[tuple(an)] += 1
-            time.sleep(0)  # Yield, so other threads get a bit of breathing space.
-        sorted_by_rate = sorted(orient.items(), key=operator.itemgetter(1), reverse=True)
-        top_n = filter(lambda x: x[1]>2, sorted_by_rate[:best_n])
-        return [[list(el[0]), el[1]] for el in top_n]
-
-    def calc_random_normal(self, points):
-        [v, w, r_v] = points
-        v = [v[0]-r_v[0], v[1]-r_v[1], v[2]-r_v[2]]
-        w = [w[0]-r_v[0], w[1]-r_v[1], w[2]-r_v[2]]
-        a=[v[1]*w[2]-v[2]*w[1],v[2]*w[0]-v[0]*w[2],v[0]*w[1]-v[1]*w[0]]
-        n = math.sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2])
-        if n != 0:
-            return [round(i/n, 6) for i in a]
-        else:
-            return None
-            
-    def random_tri(self, i):
-        mesh=self.mesh
-        if i%3 == 0:
-            v = mesh[i]
-            w = mesh[i+1]
-        elif i%3 == 1:
-            v = mesh[i]
-            w = mesh[i+1]
-        else:
-            v = mesh[i]
-            w = mesh[i-2]
-        r_v = random.choice(mesh)
-        return [v,w,r_v]
-
-
-    def remove_duplicates(self, o):
-        '''Removing duplicates in orientation'''
-        orientations = list()
-        for i in o:
-            duplicate = None
-            for j in orientations:
-                time.sleep(0)  # Yield, so other threads get a bit of breathing space.
-                dif = math.sqrt( (i[0][0]-j[0][0])**2 + (i[0][1]-j[0][1])**2 + (i[0][2]-j[0][2])**2 )
-                if dif < 0.001:
-                    duplicate = True
-                    break
-            if duplicate is None:
-                orientations.append(i)
-        return orientations
+        pass
+    # This algorithm is not implemented in numpy yet
+#        '''Searching normals or random edges with one vertice'''
+#        vcount = len(mesh)
+#        # Small files need more calculations
+#        if vcount < 10000: it = 5
+#        elif vcount < 25000: it = 2
+#        else: it = 1           
+#        self.mesh = mesh
+#        lst = map(self.calc_random_normal, list(range(vcount))*it)
+#        lst = filter(lambda x: x is not None, lst)
+#        
+#        sleep(0)  # Yield, so other threads get a bit of breathing space.
+#        orient = Counter(lst)
+#        
+#        top_n = orient.most_common(best_n)
+#        top_n = filter(lambda x: x[1]>2, top_n)
+#
+#        return [[list(el[0]), el[1]] for el in top_n]
+#
+#    def calc_random_normal(self, i):
+#        if i%3 == 0:
+#            v = self.mesh[i]
+#            w = self.mesh[i+1]
+#        elif i%3 == 1:
+#            v = self.mesh[i]
+#            w = self.mesh[i+1]
+#        else:
+#            v = self.mesh[i]
+#            w = self.mesh[i-2]
+#        r_v = random.choice(self.mesh)
+#        v = [v[0]-r_v[0], v[1]-r_v[1], v[2]-r_v[2]]
+#        w = [w[0]-r_v[0], w[1]-r_v[1], w[2]-r_v[2]]
+#        a=[v[1]*w[2]-v[2]*w[1],v[2]*w[0]-v[0]*w[2],v[0]*w[1]-v[1]*w[0]]
+#        n = math.sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2])
+#        if n != 0:
+#            return tuple([round(d/n, 6) for d in a])
+#
+#
+#    def remove_duplicates(self, o):
+#        '''Removing duplicates in orientation'''
+#        orientations = list()
+#        for i in o:
+#            duplicate = None
+#            for j in orientations:
+#                sleep(0)  # Yield, so other threads get a bit of breathing space.
+#                dif = math.sqrt( (i[0][0]-j[0][0])**2 + (i[0][1]-j[0][1])**2 + (i[0][2]-j[0][2])**2 )
+#                if dif < 0.001:
+#                    duplicate = True
+#                    break
+#            if duplicate is None:
+#                orientations.append(i)
+#        return orientations
 
 
-    
+
     def euler(self, bestside):
         '''Calculating euler params and rotation matrix'''
-        if bestside[0] == [0, 0, -1]:
+        if (bestside[0] == np.array([0, 0, -1])).all():
             v = [1, 0, 0]
-            phi = math.pi
-        elif bestside[0]==[0,0,1]:
-            v=[1,0,0]
-            phi=0
+            phi = np.pi
+        elif (bestside[0]==np.array([0, 0, 1])).all():
+            v = v[1,0,0]
+            phi = 0
         else:
-            phi = float("{:2f}".format(math.pi - math.acos( -bestside[0][2] )))
+            phi = float("{:2f}".format(np.pi - np.arccos( -bestside[0][2] )))
             v = [-bestside[0][1] , bestside[0][0], 0]
-            v = [i / math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]) for i in v]
-            v = [float("{:2f}".format(i)) for i in v]
+            v = [i / np.sum(np.abs(v)**2, axis=-1)**0.5 for i in v]
+            v = np.array([float("{:2f}".format(i)) for i in v])
 
         R = [[v[0] * v[0] * (1 - math.cos(phi)) + math.cos(phi),
               v[0] * v[1] * (1 - math.cos(phi)) - v[2] * math.sin(phi),
@@ -326,4 +315,5 @@ Time-stats of algorithm:
               v[2] * v[1] * (1 - math.cos(phi)) + v[0] * math.sin(phi),
               v[2] * v[2] * (1 - math.cos(phi)) + math.cos(phi)]]
         R = [[float("{:2f}".format(val)) for val in row] for row in R] 
-        return [v,phi,R]
+        sleep(0)  # Yield, so other threads get a bit of breathing space.
+        return v,phi,R
