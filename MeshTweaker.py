@@ -297,7 +297,7 @@ Time-stats of algorithm:
             v = [1, 0, 0]
             phi = np.pi
         elif (bestside[0]==np.array([0, 0, 1])).all():
-            v = v[1,0,0]
+            v = [1,0,0]
             phi = 0
         else:
             phi = float("{:2f}".format(np.pi - np.arccos( -bestside[0][2] )))
