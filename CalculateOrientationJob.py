@@ -10,14 +10,17 @@ class CalculateOrientationJob(Job):
         super().__init__()
 
         self._nodes = nodes
-
+		
     def run(self):
         for node in self._nodes:
             transformed_vertices = node.getMeshDataTransformed().getVertices()
-            result = Tweak(transformed_vertices, bi_algorithmic=False, verbose=False)
+
+            result = Tweak(transformed_vertices, verbose=False)
+
+            [v, phi] = result.Euler
 
             # Convert the new orientation into quaternion
-            new_orientation = Quaternion.fromAngleAxis(result.phi, Vector(-result.v[0], -result.v[1], -result.v[2]))
+            new_orientation = Quaternion.fromAngleAxis(phi, Vector(-v[0], -v[1], -v[2]))
             # Rotate the axis frame.
             rotation = Quaternion.fromAngleAxis(-0.5 * math.pi, Vector(1, 0, 0))
             new_orientation = rotation * new_orientation
