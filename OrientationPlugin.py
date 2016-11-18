@@ -18,7 +18,16 @@ class OrientationPlugin(Extension):
         self._message = None
 
     def doAutoOrientation(self):
+        # If we still had a message open from last time, hide it.
+        if self._message:
+            self._message.hide()
+
         selected_nodes = Selection.getAllSelectedObjects()
+        if len(selected_nodes) == 0:
+            self._message = Message(i18n_catalog.i18nc("@info:status", "No objects selected to orient."))
+            self._message.show()
+            return
+
         self._message = Message(i18n_catalog.i18nc("@info:status", "Calculating optimal orientation"), 0, False, -1)
         self._message.show()
 
