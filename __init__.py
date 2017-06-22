@@ -7,17 +7,7 @@ i18n_catalog = i18nCatalog("OrientationPlugin")
 from . import OrientationPlugin
 
 def getMetaData():
-    return {
-        "type": "extension",
-        "plugin":
-        {
-            "name": "OrientationPlugin",
-            "author": "Jaime van Kessel",
-            "version": "2.3",
-            "api": 3,
-            "description": i18n_catalog.i18nc("Description of plugin", "Extension that wraps the MeshTweaker by Christoph Schranz, so it can easily be used in Cura")
-        }
-    }
+    return {}
 
 
 def register(app):
