@@ -6,16 +6,17 @@ from UM.Scene.SceneNode import SceneNode
 import math
 
 class CalculateOrientationJob(Job):
-    def __init__(self, nodes):
+    def __init__(self, nodes, extended_mode = False):
         super().__init__()
 
         self._nodes = nodes
-		
+        self._extended_mode = extended_mode
+
     def run(self):
         for node in self._nodes:
             transformed_vertices = node.getMeshDataTransformed().getVertices()
 
-            result = Tweak(transformed_vertices, verbose=False)
+            result = Tweak(transformed_vertices, extended_mode = self._extended_mode, verbose=False)
 
             [v, phi] = result.Euler
 

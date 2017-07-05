@@ -14,10 +14,17 @@ i18n_catalog = i18nCatalog("OrientationPlugin")
 class OrientationPlugin(Extension):
     def __init__(self):
         super().__init__()
-        self.addMenuItem(i18n_catalog.i18n("Calculate optimal printing orientation"), self.doAutoOrientation)
+        self.addMenuItem(i18n_catalog.i18n("Calculate fast optimal printing orientation"), self.doFastAutoOrientation)
+        self.addMenuItem(i18n_catalog.i18n("Calculate extended optimal printing orientation"), self.doExtendedAutoOrientiation)
         self._message = None
 
-    def doAutoOrientation(self):
+    def doFastAutoOrientation(self):
+        self.doAutoOrientation(False)
+
+    def doExtendedAutoOrientiation(self):
+        self.doAutoOrientation(True)
+
+    def doAutoOrientation(self, extended_mode):
         # If we still had a message open from last time, hide it.
         if self._message:
             self._message.hide()
@@ -31,7 +38,7 @@ class OrientationPlugin(Extension):
         self._message = Message(i18n_catalog.i18nc("@info:status", "Calculating optimal orientation"), 0, False, -1)
         self._message.show()
 
-        job = CalculateOrientationJob(selected_nodes)
+        job = CalculateOrientationJob(selected_nodes, extended_mode = extended_mode)
         job.finished.connect(self._onFinished)
         job.start()
 
