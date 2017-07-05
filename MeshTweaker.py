@@ -93,18 +93,10 @@ class Tweak:
                
         # Best alignment
         best_alignment = results[np.argmin(results[:, 4])]
-            
-           
+
         if verbose:
-            print("""
-Time-stats of algorithm:
-  Preprocessing:    \t{pre:2f} s
-  Area Cumulation:  \t{ac:2f} s
-  Death Star:       \t{ds:2f} s
-  Lithography Time:  \t{lt:2f} s  
-  Total Time:        \t{tot:2f} s
-""".format(pre=t_pre-t_start, ac=t_areacum-t_pre, 
-           ds=t_ds-t_areacum, lt=t_lit-t_ds, tot=t_lit-t_start))  
+            print("Time-stats of algorithm: Preprocessing:    \t{pre:2f} sec\nArea Cumulation:  \t{ac:2f} sec\nDeath Star:\t{ds:2f} sec \nLithography Time:  \t{lt:2f} sec\nTotal Time:        \t{tot:2f} sec\n".format(pre=t_pre-t_start, ac=t_areacum-t_pre,
+                    ds=t_ds-t_areacum, lt=t_lit-t_ds, tot=t_lit-t_start))
            
         if len(best_alignment) > 0:
             [v, phi, Matrix] = self.euler(best_alignment)
@@ -116,9 +108,6 @@ Time-stats of algorithm:
             self.Overhang = best_alignment[2]
             self.Contour = best_alignment[3]
             self.Unprintability = best_alignment[4]
-            
-        return None
-
 
     def target_function(self, bottom, overhang, contour):
         '''This function returns the Unprintability for a given set of bottom
@@ -127,8 +116,7 @@ Time-stats of algorithm:
                 + (overhang + 1) / (1 + CONTOUR_F*contour + bottom) /RELATIVE_F)
                 
         return np.around(Unprintability, 6)
-        
-        
+
     def preprocess(self, content):
         '''The Mesh format gets preprocessed for a better performance.'''
         mesh = np.array(content, dtype=np.float64)
@@ -140,8 +128,7 @@ Time-stats of algorithm:
             v0=mesh[:,0,:]
             v1=mesh[:,1,:]
             v2=mesh[:,2,:]
-            normals = np.cross( np.subtract(v1,v0), np.subtract(v2,v0)
-                                                    ).reshape(row_number,1,3)
+            normals = np.cross(np.subtract(v1,v0), np.subtract(v2,v0)).reshape(row_number, 1, 3)
             mesh = np.hstack((normals,mesh))
         
         face_count = len(mesh)
@@ -167,8 +154,7 @@ Time-stats of algorithm:
         mesh[:,5,0] = mesh[:,5,0]/2
         
         # remove small facets (these are essential for countour calculation)
-        if not self.extended_mode: # TODO remove facets smaller than a
-                                #relative proportion of the total dimension
+        if not self.extended_mode: # TODO remove facets smaller than a relative proportion of the total dimension
             filtered_mesh = mesh[mesh[:,5,0] > NEGL_FACE_SIZE]
             if len(filtered_mesh) > 100:
                 mesh = filtered_mesh
@@ -196,7 +182,6 @@ Time-stats of algorithm:
             f * mesh[:,5,0], mesh[:,5,0])
         return mesh
 
-
     def area_cumulation(self, mesh, n):
         '''Gathering the most auspicious alignments by cumulating the 
         magnitude of parallel area vectors.'''
@@ -215,28 +200,29 @@ Time-stats of algorithm:
        
     def death_star(self, mesh, best_n):
         '''Searching normals or random edges with one vertice'''
-        vcount = len(mesh)
+        vertex_count = len(mesh)
+
         # Small files need more calculations
-        if vcount < 1000: it = 30
-        elif vcount < 2000: it = 15
-        elif vcount < 5000: it = 5
-        elif vcount < 10000: it = 3
-        elif vcount < 20000: it = 2
+        if vertex_count < 1000: it = 30
+        elif vertex_count < 2000: it = 15
+        elif vertex_count < 5000: it = 5
+        elif vertex_count < 10000: it = 3
+        elif vertex_count < 20000: it = 2
         else: it = 1     
         
-        vertexes = mesh[:vcount,1:4,:]
-        v0u1 = vertexes[:,np.random.choice(3, 2, replace=False)]
+        vertices = mesh[:vertex_count, 1:4, :]
+        v0u1 = vertices[:,np.random.choice(3, 2, replace=False)]
         v0 = v0u1[:,0,:]
         v1 = v0u1[:,1,:]
-        v2 = vertexes[:,np.random.choice(3,1, replace=False)].reshape(vcount,3)
+        v2 = vertices[:,np.random.choice(3, 1, replace=False)].reshape(vertex_count,3)
         
         lst = list()
         for i in range(it):
-            v2 = v2[np.random.choice(vcount, vcount),:]
+            v2 = v2[np.random.choice(vertex_count, vertex_count),:]
             normals = np.cross( np.subtract(v2,v0), np.subtract(v1,v0))
 
             # normalise area vector
-            area_size = (np.sum(np.abs(normals)**2, axis=-1)**0.5).reshape(vcount,1)
+            area_size = (np.sum(np.abs(normals)**2, axis=-1)**0.5).reshape(vertex_count,1)
             nset = np.hstack((normals, area_size))
             
             nset = np.array([n for n in nset if n[3]!=0])  
@@ -259,19 +245,29 @@ Time-stats of algorithm:
                         for v in top_n]
         return top_n
 
-
     def add_supplements(self):
         '''Supplement 18 additional vectors'''
-        v = [[0,0,-1], [0.70710678,0,-0.70710678],[0,0.70710678,-0.70710678],
-             [-0.70710678,0,-0.70710678],[0,-0.70710678,-0.70710678],
-    [1,0,0],[0.70710678,0.70710678,0],[0,1,0],[-0.70710678,0.70710678,0],
-    [-1,0,0],[-0.70710678,-0.70710678,0],[0,-1,0],[0.70710678,-0.70710678,0],
-            [0.70710678,0,0.70710678],[0,0.70710678,0.70710678],
-             [-0.70710678,0,0.70710678],[0,-0.70710678,0.70710678],[0,0,1]]
+        v = [[0,0,-1],
+             [0.70710678,0,-0.70710678],
+             [0,0.70710678,-0.70710678],
+             [-0.70710678,0,-0.70710678],
+             [0,-0.70710678,-0.70710678],
+             [1,0,0],
+             [0.70710678,0.70710678,0],
+             [0,1,0],
+             [-0.70710678,0.70710678,0],
+             [-1,0,0],
+             [-0.70710678,-0.70710678,0],
+             [0,-1,0],
+             [0.70710678,-0.70710678,0],
+             [0.70710678,0,0.70710678],
+             [0,0.70710678,0.70710678],
+             [-0.70710678,0,0.70710678],
+             [0,-0.70710678,0.70710678],
+             [0,0,1]]
         v = [[[float(j) for j in i],0] for i in v]
         return v
-        
-        
+
     def remove_duplicates(self, o):
         '''Removing duplicates in orientation'''
         orientations = list()
@@ -286,7 +282,6 @@ Time-stats of algorithm:
             if duplicate is None:
                 orientations.append(i)
         return orientations
-
 
     def project_verteces(self, mesh, orientation):
         '''Returning the "lowest" point vector regarding a vector n for
@@ -314,27 +309,27 @@ Time-stats of algorithm:
         # filter bottom area        
         bottoms = mesh[mesh[:,5,1] < total_min + FIRST_LAY_H]
         if len(bottoms) > 0:
-            bottom = np.sum(bottoms[:,5,0]) 
-        else: bottom = 0
+            bottom = np.sum(bottoms[:,5,0])
         
         # filter overhangs
         overhangs = mesh[np.inner(mesh[:,0,:], orientation) < ascent]
         overhangs = overhangs[overhangs[:,5,1] > (total_min + FIRST_LAY_H)]
                     
         if self.extended_mode:
-            plafonds = overhangs[(overhangs[:,0,:]==anti_orient).all(axis=1)]
+            plafonds = overhangs[(overhangs[:,0,:] == anti_orient).all(axis=1)]
             if len(plafonds) > 0:
                 plafond = np.sum(plafonds[:,5,0]) 
-            else: plafond = 0
-        else: plafond = 0
+            else:
+                plafond = 0
+        else:
+            plafond = 0
+
         if len(overhangs) > 0:
             overhang = np.sum(overhangs[:,5,0] * 2
                 *(np.amax((np.zeros(len(overhangs))+0.5,
                            -np.inner(overhangs[:,0,:], orientation))
                            ,axis=0) -0.5 )**2)
-            overhang = overhang - PLAFOND_ADV * plafond  
-        else: overhang = 0
-        
+            overhang = overhang - PLAFOND_ADV * plafond
 
         # filter the total length of the bottom area's contour
         if self.extended_mode:
@@ -360,7 +355,6 @@ Time-stats of algorithm:
         sleep(0)  # Yield, so other threads get a bit of breathing space.
         return bottom, overhang, contour
 
-
     def euler(self, bestside):
         '''Calculating euler rotation parameters and rotation matrix'''
         if np.allclose(bestside[0], np.array([0, 0, -1]), atol = VECTOR_TOL):
@@ -370,8 +364,8 @@ Time-stats of algorithm:
             v = [1, 0, 0]
             phi = 0
         else:
-            phi = float("{:2f}".format(np.pi - np.arccos( -bestside[0][2] )))
-            v = [-bestside[0][1] , bestside[0][0], 0]
+            phi = float("{:2f}".format(np.pi - np.arccos(-bestside[0][2])))
+            v = [-bestside[0][1], bestside[0][0], 0]
             v = [i / np.sum(np.abs(v)**2, axis=-1)**0.5 for i in v]
             v = np.array([float("{:2f}".format(i)) for i in v])
             
@@ -386,4 +380,4 @@ Time-stats of algorithm:
               v[2] * v[2] * (1 - math.cos(phi)) + math.cos(phi)]]
         R = np.around(R, decimals = 6)
         sleep(0)  # Yield, so other threads get a bit of breathing space.
-        return v,phi,R
+        return v, phi, R
