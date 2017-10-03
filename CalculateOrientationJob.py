@@ -6,9 +6,9 @@ from UM.Scene.SceneNode import SceneNode
 import math
 
 class CalculateOrientationJob(Job):
-    def __init__(self, nodes, extended_mode = False):
+    def __init__(self, nodes, extended_mode = False, message = None):
         super().__init__()
-
+        self._message = message
         self._nodes = nodes
         self._extended_mode = extended_mode
 
@@ -16,7 +16,7 @@ class CalculateOrientationJob(Job):
         for node in self._nodes:
             transformed_vertices = node.getMeshDataTransformed().getVertices()
 
-            result = Tweak(transformed_vertices, extended_mode = self._extended_mode, verbose=False)
+            result = Tweak(transformed_vertices, extended_mode = self._extended_mode, verbose=False, progress_callback=self.updateProgress)
 
             [v, phi] = result.euler_parameter
 
@@ -30,3 +30,7 @@ class CalculateOrientationJob(Job):
             node.rotate(new_orientation, SceneNode.TransformSpace.World)
 
             Job.yieldThread()
+
+    def updateProgress(self, progress):
+        if self._message:
+            self._message.setProgress(progress)

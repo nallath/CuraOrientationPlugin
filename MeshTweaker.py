@@ -38,8 +38,8 @@ class Tweak:
         """
 
     def __init__(self, content, extended_mode=False, verbose=True,
-                 show_progress=False, favside=None, min_volume=False):
-
+                 show_progress=False, favside=None, min_volume=False, progress_callback = None):
+        self.progress_callback = progress_callback
         self.extended_mode = extended_mode
         self.show_progress = show_progress
         z_axis = -np.array([0, 0, 1], dtype=np.float64)
@@ -47,21 +47,21 @@ class Tweak:
 
         # Preprocess the input mesh format.
         t_start = time()
-        progress = 0  # progress in percent of tweaking
-        progress = self.print_progress(progress)
+        self._progress = 0 # progress in percent of tweaking
+        self.updateProgress(self._progress + 18)
 
         mesh = self.preprocess(content)
 
         if favside:
             mesh = self.favour_side(mesh, favside)
         t_pre = time()
-        progress = self.print_progress(progress)
+        self.updateProgress(self._progress + 18)
 
         # Searching promising orientations:
         orientations += self.area_cumulation(mesh, 10)
 
         t_areacum = time()
-        progress = self.print_progress(progress)
+        self.updateProgress(self._progress + 18)
         if extended_mode:
             orientations += self.death_star(mesh, 8)
             orientations += self.add_supplements()
@@ -73,7 +73,7 @@ class Tweak:
                   ("Alignment:", "Bottom:", "Overhang:", "Contour:", "Unpr.:"))
 
         t_ds = time()
-        progress = self.print_progress(progress)
+        self.updateProgress(self._progress + 18)
 
         # Calculate the unprintability for each orientation
         results = list()
@@ -93,7 +93,7 @@ class Tweak:
                          round(unprintability, 2)))
 
         t_lit = time()
-        progress = self.print_progress(progress)
+        progress = self.updateProgress(self._progress + 18)
 
         # evaluate the best 5 alignments and calculate the rotation parameters
         results = np.array(results)
@@ -127,6 +127,8 @@ class Tweak:
             self.contour = best_5_results[0][3]
             self.unprintability = best_5_results[0][4]
             self.best_5 = best_5_results
+
+        self.updateProgress(100)
 
     def target_function(self, bottom, overhang, contour, min_volume):
         """This function returns the Unprintability for a given set of bottom
@@ -439,12 +441,13 @@ class Tweak:
         sleep(0)  # Yield, so other threads get a bit of breathing space.
         return bottom, overhang, contour
 
-    def print_progress(self, progress):
-        progress += 18
+    def updateProgress(self, new_progress):
+        self._progress = new_progress
         if self.show_progress:
             os.system('cls')
-            print("Progress is: {} %".format(progress))
-        return progress
+            print("Progress is: {progress} ".format(progress = new_progress))
+        if self.progress_callback:
+            self.progress_callback(new_progress)
 
     def euler(self, bestside):
         """Calculating euler rotation parameters and rotational matrix.

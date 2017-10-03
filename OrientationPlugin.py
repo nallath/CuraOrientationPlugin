@@ -38,7 +38,7 @@ class OrientationPlugin(Extension):
         self._message = Message(i18n_catalog.i18nc("@info:status", "Calculating optimal orientation"), 0, False, -1)
         self._message.show()
 
-        job = CalculateOrientationJob(selected_nodes, extended_mode = extended_mode)
+        job = CalculateOrientationJob(selected_nodes, extended_mode = extended_mode, message = self._message)
         job.finished.connect(self._onFinished)
         job.start()
 
