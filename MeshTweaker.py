@@ -93,7 +93,7 @@ class Tweak:
                          round(unprintability, 2)))
 
         t_lit = time()
-        progress = self.updateProgress(self._progress + 18)
+        self.updateProgress(self._progress + 18)
 
         # evaluate the best 5 alignments and calculate the rotation parameters
         results = np.array(results)
