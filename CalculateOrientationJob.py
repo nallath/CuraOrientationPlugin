@@ -18,7 +18,7 @@ class CalculateOrientationJob(Job):
 
             result = Tweak(transformed_vertices, extended_mode = self._extended_mode, verbose=False)
 
-            [v, phi] = result.Euler
+            [v, phi] = result.euler_parameter
 
             # Convert the new orientation into quaternion
             new_orientation = Quaternion.fromAngleAxis(phi, Vector(-v[0], -v[1], -v[2]))
