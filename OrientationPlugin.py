@@ -28,6 +28,8 @@ class OrientationPlugin(Extension):
         self._check_node_queue = []  # type: List[SceneNode]
         CuraApplication.getInstance().getPreferences().addPreference("OrientationPlugin/do_auto_orientation", False)
         self._do_auto_orientation = CuraApplication.getInstance().getPreferences().getValue("OrientationPlugin/do_auto_orientation")
+        # Should the volume beneath the overhangs be penalized?
+        CuraApplication.getInstance().getPreferences().addPreference("OrientationPlugin/min_volume", True)
 
         self._popup = None
 

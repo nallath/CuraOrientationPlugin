@@ -1,7 +1,7 @@
 {
     "name": "Auto Orientation",
     "author": "Jaime van Kessel",
-    "version": "3.2.1",
+    "version": "3.3.1",
     "api": 5,
     "description": "Extension that wraps the MeshTweaker by Christoph Schranz, so it can easily be used in Cura. This enables the automatic orientation of models.",
     "supported_sdk_versions": ["5.0.0", "6.0.0"]

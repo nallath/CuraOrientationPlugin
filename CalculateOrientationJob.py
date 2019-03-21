@@ -1,4 +1,5 @@
 from UM.Job import Job
+from cura.CuraApplication import CuraApplication
 from .MeshTweaker import Tweak
 from UM.Math.Quaternion import Quaternion
 from UM.Math.Vector import Vector
@@ -16,7 +17,7 @@ class CalculateOrientationJob(Job):
         for node in self._nodes:
             transformed_vertices = node.getMeshDataTransformed().getVertices()
 
-            result = Tweak(transformed_vertices, extended_mode = self._extended_mode, verbose=False, progress_callback=self.updateProgress)
+            result = Tweak(transformed_vertices, extended_mode = self._extended_mode, verbose=False, progress_callback=self.updateProgress, min_volume=CuraApplication.getInstance().getPreferences().getValue("OrientationPlugin/min_volume"))
 
             [v, phi] = result.euler_parameter
 
