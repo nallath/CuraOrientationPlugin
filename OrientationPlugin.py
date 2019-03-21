@@ -31,11 +31,11 @@ class OrientationPlugin(Extension):
 
         selected_nodes = Selection.getAllSelectedObjects()
         if len(selected_nodes) == 0:
-            self._message = Message(i18n_catalog.i18nc("@info:status", "No objects selected to orient."))
+            self._message = Message(i18n_catalog.i18nc("@info:status", "No objects selected to orient. Please select one or more objects and try again."), title = i18n_catalog.i18nc("@title", "Auto-Orientation"))
             self._message.show()
             return
 
-        self._message = Message(i18n_catalog.i18nc("@info:status", "Calculating optimal orientation"), 0, False, -1)
+        self._message = Message(i18n_catalog.i18nc("@info:status", "Calculating the optimal orientation..."), 0, False, -1, title = i18n_catalog.i18nc("@title", "Auto-Orientation"))
         self._message.show()
 
         job = CalculateOrientationJob(selected_nodes, extended_mode = extended_mode, message = self._message)
@@ -45,3 +45,5 @@ class OrientationPlugin(Extension):
     def _onFinished(self, job):
         if self._message:
             self._message.hide()
+            self._message = Message(i18n_catalog.i18nc("@info:status", "All selected objects have been oriented."), title=i18n_catalog.i18nc("@title", "Auto-Orientation"))
+            self._message.show()
