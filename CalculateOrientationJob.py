@@ -34,3 +34,6 @@ class CalculateOrientationJob(Job):
     def updateProgress(self, progress):
         if self._message:
             self._message.setProgress(progress)
+
+    def getMessage(self):
+        return self._message

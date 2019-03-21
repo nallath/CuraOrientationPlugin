@@ -1,14 +1,20 @@
+from typing import List
+
 from UM.Extension import Extension
+from UM.Scene.SceneNode import SceneNode
 from UM.Scene.Selection import Selection
 
 
 
 from UM.Message import Message
+from cura.CuraApplication import CuraApplication
 
 from .CalculateOrientationJob import CalculateOrientationJob
 
 from UM.i18n import i18nCatalog
 i18n_catalog = i18nCatalog("OrientationPlugin")
+from UM.Scene.Iterator.DepthFirstIterator import DepthFirstIterator
+import os
 
 
 class OrientationPlugin(Extension):
@@ -17,6 +23,52 @@ class OrientationPlugin(Extension):
         self.addMenuItem(i18n_catalog.i18n("Calculate fast optimal printing orientation"), self.doFastAutoOrientation)
         self.addMenuItem(i18n_catalog.i18n("Calculate extended optimal printing orientation"), self.doExtendedAutoOrientiation)
         self._message = None
+
+        self._currently_loading_files = []  # type: List[str]
+        self._check_node_queue = []  # type: List[SceneNode]
+
+        self._do_auto_orientation = False
+
+        CuraApplication.getInstance().fileLoaded.connect(self._onFileLoaded)
+        CuraApplication.getInstance().fileCompleted.connect(self._onFileCompleted)
+        CuraApplication.getInstance().getController().getScene().sceneChanged.connect(self._onSceneChanged)
+
+    def _onFileLoaded(self, file_name):
+        self._currently_loading_files.append(file_name)
+
+    def _onFileCompleted(self, file_name):
+        if file_name in self._currently_loading_files:
+            self._currently_loading_files.remove(file_name)
+
+    def _onSceneChanged(self, node):
+        if not self._do_auto_orientation:
+            return  # Nothing to do!
+
+        if not node or not node.getMeshData():
+            return
+
+        # only check meshes that have just been loaded
+        if node.getMeshData().getFileName() not in self._currently_loading_files:
+            return
+
+        # the scene may change multiple times while loading a mesh,
+        # but we want to check the mesh only once
+        if node not in self._check_node_queue:
+            self._check_node_queue.append(node)
+            CuraApplication.getInstance().callLater(self.checkQueuedNodes)
+
+    def checkQueuedNodes(self):
+        for node in self._check_node_queue:
+            if self._message:
+                self._message.hide()
+            auto_orient_message = Message(i18n_catalog.i18nc("@info:status", "Auto-Calculating the optimal orientation because auto orientation is enabled"), 0,
+                                    False, -1, title=i18n_catalog.i18nc("@title", "Auto-Orientation"))
+            auto_orient_message.show()
+            job = CalculateOrientationJob([node], extended_mode=True, message=auto_orient_message)
+            job.finished.connect(self._onFinished)
+            job.start()
+
+        self._check_node_queue = []
 
     def doFastAutoOrientation(self):
         self.doAutoOrientation(False)
@@ -35,15 +87,19 @@ class OrientationPlugin(Extension):
             self._message.show()
             return
 
-        self._message = Message(i18n_catalog.i18nc("@info:status", "Calculating the optimal orientation..."), 0, False, -1, title = i18n_catalog.i18nc("@title", "Auto-Orientation"))
-        self._message.show()
+        message = Message(i18n_catalog.i18nc("@info:status", "Calculating the optimal orientation..."), 0, False, -1, title = i18n_catalog.i18nc("@title", "Auto-Orientation"))
+        message.show()
 
-        job = CalculateOrientationJob(selected_nodes, extended_mode = extended_mode, message = self._message)
+        job = CalculateOrientationJob(selected_nodes, extended_mode = extended_mode, message = message)
         job.finished.connect(self._onFinished)
         job.start()
 
     def _onFinished(self, job):
         if self._message:
             self._message.hide()
-            self._message = Message(i18n_catalog.i18nc("@info:status", "All selected objects have been oriented."), title=i18n_catalog.i18nc("@title", "Auto-Orientation"))
+
+        if job.getMessage() is not None:
+            job.getMessage().hide()
+            self._message = Message(i18n_catalog.i18nc("@info:status", "All selected objects have been oriented."),
+                                    title=i18n_catalog.i18nc("@title", "Auto-Orientation"))
             self._message.show()
