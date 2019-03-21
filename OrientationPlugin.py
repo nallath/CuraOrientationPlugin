@@ -1,6 +1,7 @@
 from typing import List
 
 from UM.Extension import Extension
+from UM.PluginRegistry import PluginRegistry
 from UM.Scene.SceneNode import SceneNode
 from UM.Scene.Selection import Selection
 
@@ -10,6 +11,8 @@ from cura.CuraApplication import CuraApplication
 from .CalculateOrientationJob import CalculateOrientationJob
 
 from UM.i18n import i18nCatalog
+
+import os
 i18n_catalog = i18nCatalog("OrientationPlugin")
 
 
@@ -18,16 +21,39 @@ class OrientationPlugin(Extension):
         super().__init__()
         self.addMenuItem(i18n_catalog.i18n("Calculate fast optimal printing orientation"), self.doFastAutoOrientation)
         self.addMenuItem(i18n_catalog.i18n("Calculate extended optimal printing orientation"), self.doExtendedAutoOrientiation)
+        self.addMenuItem(i18n_catalog.i18n("Modify Settings"), self.showPopup)
         self._message = None
 
         self._currently_loading_files = []  # type: List[str]
         self._check_node_queue = []  # type: List[SceneNode]
+        CuraApplication.getInstance().getPreferences().addPreference("OrientationPlugin/do_auto_orientation", False)
+        self._do_auto_orientation = CuraApplication.getInstance().getPreferences().getValue("OrientationPlugin/do_auto_orientation")
 
-        self._do_auto_orientation = False
+        self._popup = None
 
         CuraApplication.getInstance().fileLoaded.connect(self._onFileLoaded)
         CuraApplication.getInstance().fileCompleted.connect(self._onFileCompleted)
         CuraApplication.getInstance().getController().getScene().sceneChanged.connect(self._onSceneChanged)
+        CuraApplication.getInstance().getPreferences().preferenceChanged.connect(self._onPreferencesChanged)
+
+    def _onPreferencesChanged(self, name: str) -> None:
+        if name != "OrientationPlugin/do_auto_orientation":
+            return
+        self._do_auto_orientation = CuraApplication.getInstance().getPreferences().getValue("OrientationPlugin/do_auto_orientation")
+
+    def _createPopup(self) -> None:
+        # Create the plugin dialog component
+        path = os.path.join(PluginRegistry.getInstance().getPluginPath("OrientationPlugin"), "SettingsPopup.qml")
+        self._popup = CuraApplication.getInstance().createQmlComponent(path)
+        if self._popup is None:
+            return
+
+    def showPopup(self) -> None:
+        if self._popup is None:
+            self._createPopup()
+            if self._popup is None:
+                return
+        self._popup.show()
 
     def _onFileLoaded(self, file_name):
         self._currently_loading_files.append(file_name)
