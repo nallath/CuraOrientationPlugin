@@ -15,9 +15,9 @@ FIRST_LAY_H = 0.25  # The initial layer of a print has an altitude > 0
 # bottom layer and very bottom-near overhangs can be handled as similar.
 NEGL_FACE_SIZE = 1  # The fast operation mode neglects facet sizes smaller than
 # this value (in mm^2) for a better performance
-ABSOLUTE_F = 100  # These values scale the the parameters bottom size,
-RELATIVE_F = 1  # overhang size, and bottom contour lenght to get a robust
-CONTOUR_F = 0.5  # value for the Unprintability
+ABSOLUTE_F = 100    # These values scale the the parameters bottom size,
+RELATIVE_F = 1      # overhang size, and bottom contour lenght to get a robust
+CONTOUR_F = 0.5     # value for the Unprintability
 
 
 class Tweak:
