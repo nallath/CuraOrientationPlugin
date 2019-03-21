@@ -4,8 +4,6 @@ from UM.Extension import Extension
 from UM.Scene.SceneNode import SceneNode
 from UM.Scene.Selection import Selection
 
-
-
 from UM.Message import Message
 from cura.CuraApplication import CuraApplication
 
@@ -13,8 +11,6 @@ from .CalculateOrientationJob import CalculateOrientationJob
 
 from UM.i18n import i18nCatalog
 i18n_catalog = i18nCatalog("OrientationPlugin")
-from UM.Scene.Iterator.DepthFirstIterator import DepthFirstIterator
-import os
 
 
 class OrientationPlugin(Extension):
