@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, cast
 
 from UM.Extension import Extension
 from UM.PluginRegistry import PluginRegistry
@@ -45,7 +45,7 @@ class OrientationPlugin(Extension):
 
     def _createPopup(self) -> None:
         # Create the plugin dialog component
-        path = os.path.join(PluginRegistry.getInstance().getPluginPath("OrientationPlugin"), "SettingsPopup.qml")
+        path = os.path.join(cast(str, PluginRegistry.getInstance().getPluginPath("OrientationPlugin")), "SettingsPopup.qml")
         self._popup = CuraApplication.getInstance().createQmlComponent(path)
         if self._popup is None:
             return
