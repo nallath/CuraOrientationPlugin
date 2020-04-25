@@ -27,6 +27,7 @@ parameter = {
     'CONTOUR_AMOUNT': 0.012893512521961371
 }
 
+
 class Tweak:
     """ The Tweaker is an auto rotate class for 3D objects.
 
