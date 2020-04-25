@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import os
 import re
 import math
 from time import time, sleep
@@ -45,7 +45,8 @@ class Tweak:
         """
 
     def __init__(self, content, extended_mode=False, verbose=True,
-                 show_progress=False, favside=None, min_volume=False):
+                 show_progress=False, favside=None, min_volume=False, progress_callback=None):
+        self.progress_callback = progress_callback
         # Load parameters
         self.VECTOR_TOL = 0.001  # parameter["VECTOR_TOL"]
         self.FIRST_LAY_H = parameter["FIRST_LAY_H"]
@@ -71,9 +72,8 @@ class Tweak:
 
         # Preprocess the input mesh format.
         t_start = time()
-        progress = 0  # progress in percent of tweaking
-        progress = self.print_progress(progress)
-
+        self._progress = 0  # progress in percent of tweaking
+        self.updateProgress(self._progress + 18)
         # Load mesh from file into class variable
         self.mesh = self.preprocess(content)
 
@@ -81,13 +81,12 @@ class Tweak:
         if favside:
             self.favour_side(favside)
         t_pre = time()
-        progress = self.print_progress(progress)
-
+        self.updateProgress(self._progress + 18)
         # Searching promising orientations:
         orientations += self.area_cumulation(10)
 
         t_areacum = time()
-        progress = self.print_progress(progress)
+        self.updateProgress(self._progress + 18)
         if extended_mode:
             orientations += self.death_star(12)
             orientations += self.add_supplements()
@@ -99,7 +98,7 @@ class Tweak:
                   ("Alignment:", "Bottom:", "Overhang:", "Contour:", "Unpr.:"))
 
         t_ds = time()
-        progress = self.print_progress(progress)
+        self.updateProgress(self._progress + 18)
 
         # Calculate the unprintability for each orientation found in the gathering algorithms
         results = list()
@@ -115,7 +114,7 @@ class Tweak:
                       % (str(np.around(orientation, decimals=4)),
                          bottom, overhang, contour, unprintability))
         t_lit = time()
-        progress = self.print_progress(progress)
+        self.updateProgress(self._progress + 18)
 
         # evaluate the best alignments and calculate the rotation parameters
         results = np.array(results)
@@ -176,7 +175,7 @@ class Tweak:
         return unprintability
 
     def preprocess(self, content):
-        """The Mesh format gets preprocessed for a better performance and stored into self.mesh
+        """The Mesh format gets preprocessed for a better performance and stored into self.mesh.
         Args:
             content (np.array): undefined representation of the mesh
         Returns:
@@ -461,13 +460,13 @@ class Tweak:
         sleep(0)  # Yield, so other threads get a bit of breathing space.
         return bottom, overhang, contour
 
-    def print_progress(self, progress):
-        progress += 18
+    def updateProgress(self, new_progress):
+        self._progress = new_progress
         if self.show_progress:
-            # Display progress on a single console line.... (assuming python3 here, as no future imported at the top)
-            print("\nProgress is: {}".format(progress), end="")
-
-        return progress
+            os.system('cls')
+            print("Progress is: {progress} ".format(progress = new_progress))
+        if self.progress_callback:
+            self.progress_callback(new_progress)
 
     def euler(self, bestside):
         """Calculating euler rotation parameters and rotational matrix.
