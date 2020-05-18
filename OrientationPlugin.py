@@ -21,6 +21,7 @@ class OrientationPlugin(Extension):
         super().__init__()
         self.addMenuItem(i18n_catalog.i18n("Calculate fast optimal printing orientation"), self.doFastAutoOrientation)
         self.addMenuItem(i18n_catalog.i18n("Calculate extended optimal printing orientation"), self.doExtendedAutoOrientiation)
+        self.addMenuItem("", lambda: None)
         self.addMenuItem(i18n_catalog.i18n("Modify Settings"), self.showPopup)
         self._message = None
 
