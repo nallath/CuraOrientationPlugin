@@ -1,10 +1,13 @@
 from UM.Job import Job
+from UM.Operations.GroupedOperation import GroupedOperation
+from UM.Operations.RotateOperation import RotateOperation
 from cura.CuraApplication import CuraApplication
 from .MeshTweaker import Tweak
 from UM.Math.Quaternion import Quaternion
 from UM.Math.Vector import Vector
 from UM.Scene.SceneNode import SceneNode
 import math
+
 
 class CalculateOrientationJob(Job):
     def __init__(self, nodes, extended_mode = False, message = None):
@@ -14,6 +17,8 @@ class CalculateOrientationJob(Job):
         self._extended_mode = extended_mode
 
     def run(self):
+        op = GroupedOperation()
+
         for node in self._nodes:
             transformed_vertices = node.getMeshDataTransformed().getVertices()
 
@@ -28,9 +33,10 @@ class CalculateOrientationJob(Job):
             new_orientation = rotation * new_orientation
 
             # Ensure node gets the new orientation
-            node.rotate(new_orientation, SceneNode.TransformSpace.World)
+            op.addOperation(RotateOperation(node, new_orientation))
 
             Job.yieldThread()
+        op.push()
 
     def updateProgress(self, progress):
         if self._message:
