@@ -8,15 +8,20 @@ from UM.Math.Vector import Vector
 from UM.Scene.SceneNode import SceneNode
 import math
 
+from typing import List, TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from UM.Message import Message
+
 
 class CalculateOrientationJob(Job):
-    def __init__(self, nodes, extended_mode = False, message = None):
+    def __init__(self, nodes: List[SceneNode], extended_mode: bool = False, message: Optional["Message"] = None) -> None:
         super().__init__()
         self._message = message
         self._nodes = nodes
         self._extended_mode = extended_mode
 
-    def run(self):
+    def run(self) -> None:
         op = GroupedOperation()
 
         for node in self._nodes:
@@ -42,5 +47,5 @@ class CalculateOrientationJob(Job):
         if self._message:
             self._message.setProgress(progress)
 
-    def getMessage(self):
+    def getMessage(self) -> Optional["Message"]:
         return self._message
