@@ -37,8 +37,9 @@ class CalculateOrientationJob(Job):
             rotation = Quaternion.fromAngleAxis(-0.5 * math.pi, Vector(1, 0, 0))
             new_orientation = rotation * new_orientation
 
-            # Ensure node gets the new orientation
-            op.addOperation(RotateOperation(node, new_orientation))
+            # Ensure node gets the new orientation, and rotate it around the center of the object.
+            # The rotating around the center prevents it from getting all kinds of weird new positions on the buildplate
+            op.addOperation(RotateOperation(node, new_orientation, rotate_around_point = node.getBoundingBox().center))
 
             Job.yieldThread()
         op.push()
