@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Jaime van Kessel
+# Copyright (c) 2022 Jaime van Kessel
 # The OrientationPLugin is released under the terms of the AGPLv3 or higher.
 
 from UM.i18n import i18nCatalog
