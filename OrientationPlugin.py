@@ -41,22 +41,13 @@ class OrientationPlugin(Extension):
         CuraApplication.getInstance().fileCompleted.connect(self._onFileCompleted)
         CuraApplication.getInstance().getController().getScene().sceneChanged.connect(self._onSceneChanged)
         CuraApplication.getInstance().getPreferences().preferenceChanged.connect(self._onPreferencesChanged)
-        
-        self.Major=4
-        self.Minor=0
 
-        try:
-            self.Major = int(CuraVersion.split(".")[0])
-            self.Minor = int(CuraVersion.split(".")[1])
-        except:
-            pass
- 
-        if self.Major > 4:
-            self._qml_folder="qml_qt6"
+        # Use the qml_qt6 stuff for 5.0.0 and up
+        if Version(CuraVersion).getMajor() >= 5:
+            self._qml_folder = "qml_qt6"
         else:
-            self._qml_folder="qml_qt5"
-            
-                
+            self._qml_folder = "qml_qt5"
+
     def _onPreferencesChanged(self, name: str) -> None:
         if name != "OrientationPlugin/do_auto_orientation":
             return
@@ -64,8 +55,8 @@ class OrientationPlugin(Extension):
 
     def _createPopup(self) -> None:
         # Create the plugin dialog component
-        # path = os.path.join(cast(str, PluginRegistry.getInstance().getPluginPath("OrientationPlugin")), "SettingsPopup.qml")
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), self._qml_folder, "SettingsPopup.qml")            
+        path = os.path.join(cast(str, PluginRegistry.getInstance().getPluginPath(self.getPluginId())), self._qml_folder,
+                            "SettingsPopup.qml")
         self._popup = CuraApplication.getInstance().createQmlComponent(path)
         if self._popup is None:
             return
