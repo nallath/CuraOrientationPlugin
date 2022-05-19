@@ -1,8 +1,7 @@
-// Copyright (c) 2019 Jaime van Kessel
+// Copyright (c) 2022 Jaime van Kessel
 
 import QtQuick 2.2
 import QtQuick.Controls 2.0
-
 
 import UM 1.2 as UM
 
