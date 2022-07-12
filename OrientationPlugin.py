@@ -187,7 +187,7 @@ class OrientationPlugin(Extension):
             # For debuging output the vector director and the Angle ( in radians and degree)
             Logger.log('d', "s_lg   : {}".format(s_lg))
             Logger.log('d', "Angle : {} Angle° : {}".format(anGl,deganGl)) 
-            #Something done in the RotateTool.py ... It's not very clear for me, but I still have to investigate this point
+            # Check for direction according to the DOT product with Y
             dv=self._dot_vector(vectY,(s_lg.x, s_lg.y, 0))
             Logger.log('d', "Dot vector : {}".format(dv))  
             if dv > 0 :
