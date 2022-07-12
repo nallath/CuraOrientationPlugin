@@ -37,7 +37,9 @@ class OrientationPlugin(Extension):
         self.addMenuItem(i18n_catalog.i18nc("@item:inmenu", "Rotate in the main direction (X)"), self.rotateMainDirection)
         self.addMenuItem(" ", lambda: None)
         self.addMenuItem(i18n_catalog.i18n("Modify Settings"), self.showPopup)
-        self._message = None
+        
+        self._message = Message(title=i18n_catalog.i18nc("@info:title", "Orientation Plugin"))
+        self._message.hide()
         
         self._currently_loading_files = []  # type: List[str]
         self._check_node_queue = []  # type: List[SceneNode]
@@ -126,12 +128,14 @@ class OrientationPlugin(Extension):
                 return selection[:]
 
             self._message.setText(i18n_catalog.i18nc("@info:status", "No object selected to orient. Please select one object and try again."))
+            self._message._message_type = Message.MessageType.ERROR
         else:
             if len(selection) >= 1:
                 return selection[:]
 
             self._message.setText(i18n_catalog.i18nc("@info:status", "No objects selected to orient. Please select one or more objects and try again."))
-
+            self._message._message_type = Message.MessageType.ERROR
+            
         self._message.show()
         return []
         
@@ -252,12 +256,9 @@ class OrientationPlugin(Extension):
         if self._message:
             self._message.hide()
 
-        selected_nodes = Selection.getAllSelectedObjects()
+        selected_nodes = self._getSelectedNodes()
         if len(selected_nodes) == 0:
-            self._message = Message(i18n_catalog.i18nc("@info:status", "No objects selected to orient. Please select one or more objects and try again."), title = i18n_catalog.i18nc("@title", "Auto-Orientation"))
-            self._message.show()
             return
-
         message = Message(i18n_catalog.i18nc("@info:status", "Calculating the optimal orientation..."), 0, False, -1, title = i18n_catalog.i18nc("@title", "Auto-Orientation"))
         message.show()
 
@@ -272,5 +273,5 @@ class OrientationPlugin(Extension):
         if job.getMessage() is not None:
             job.getMessage().hide()
             self._message = Message(i18n_catalog.i18nc("@info:status", "All selected objects have been oriented."),
-                                    title=i18n_catalog.i18nc("@title", "Auto-Orientation"))
+                                    title=i18n_catalog.i18nc("@title", "Auto-Orientation"), message_type = Message.MessageType.POSITIVE)
             self._message.show()
