@@ -34,10 +34,10 @@ class OrientationPlugin(Extension):
         self.addMenuItem(i18n_catalog.i18n("Calculate fast optimal printing orientation"), self.doFastAutoOrientation)
         self.addMenuItem(i18n_catalog.i18n("Calculate extended optimal printing orientation"), self.doExtendedAutoOrientiation)
         self.addMenuItem("", lambda: None)
-        self.addMenuItem(i18n_catalog.i18nc("@item:inmenu", "Rotate main direction (X)"), self.rotateMainDirection)
+        self.addMenuItem(i18n_catalog.i18nc("@item:inmenu", "Rotate in the main direction (X)"), self.rotateMainDirection)
         self.addMenuItem(" ", lambda: None)
         self.addMenuItem(i18n_catalog.i18n("Modify Settings"), self.showPopup)
-        self._message = Message(title=i18n_catalog.i18nc("@info:title", "Orientation Plugin"))
+        self._message = None
         
         self._currently_loading_files = []  # type: List[str]
         self._check_node_queue = []  # type: List[SceneNode]
