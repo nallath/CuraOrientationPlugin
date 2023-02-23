@@ -1,0 +1,83 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the OrientationPlugin package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: OrientationPlugin\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-02-23 23:54+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: OrientationPlugin.py:46
+msgid "Calculate fast optimal printing orientation"
+msgstr ""
+
+#: OrientationPlugin.py:47
+msgid "Calculate extended optimal printing orientation"
+msgstr ""
+
+#: OrientationPlugin.py:49
+msgctxt "@item:inmenu"
+msgid "Rotate in the main direction (X)"
+msgstr ""
+
+#: OrientationPlugin.py:50
+msgctxt "@item:inmenu"
+msgid "Rotate the side direction (X)"
+msgstr ""
+
+#: OrientationPlugin.py:52
+msgctxt "@item:inmenu"
+msgid "Reinit Rotation"
+msgstr ""
+
+#: OrientationPlugin.py:54
+msgid "Modify Settings"
+msgstr ""
+
+#: OrientationPlugin.py:56
+msgctxt "@info:title"
+msgid "Orientation Plugin"
+msgstr ""
+
+#: OrientationPlugin.py:129
+msgctxt "@info:status"
+msgid ""
+"Auto-Calculating the optimal orientation because auto orientation is enabled"
+msgstr ""
+
+#: OrientationPlugin.py:130 OrientationPlugin.py:326 OrientationPlugin.py:340
+msgctxt "@title"
+msgid "Auto-Orientation"
+msgstr ""
+
+#: OrientationPlugin.py:145
+msgctxt "@info:status"
+msgid "No object selected to orient. Please select one object and try again."
+msgstr ""
+
+#: OrientationPlugin.py:151
+msgctxt "@info:status"
+msgid ""
+"No objects selected to orient. Please select one or more objects and try "
+"again."
+msgstr ""
+
+#: OrientationPlugin.py:326
+msgctxt "@info:status"
+msgid "Calculating the optimal orientation..."
+msgstr ""
+
+#: OrientationPlugin.py:339
+msgctxt "@info:status"
+msgid "All selected objects have been oriented."
+msgstr ""
