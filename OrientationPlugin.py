@@ -10,6 +10,8 @@ from UM.Operations.GroupedOperation import GroupedOperation
 
 from UM.Math.Vector import Vector
 from UM.Math.Matrix import Matrix
+from UM.Math.Quaternion import Quaternion
+from UM.Resources import Resources
 
 from UM.Message import Message
 from UM.Logger import Logger
@@ -24,10 +26,20 @@ from .SetTransformMatrixOperation import SetTransformMatrixOperation
 from UM.i18n import i18nCatalog
 
 import os
+
 import numpy
+import trimesh
+
+
+Resources.addSearchPath(
+    os.path.join(os.path.abspath(os.path.dirname(__file__)))
+)  # Plugin translation file import
+
 i18n_catalog = i18nCatalog("OrientationPlugin")
 
-
+if i18n_catalog.hasTranslationLoaded():
+    Logger.log("i", "OrientationPlugin Plugin translation loaded!")
+    
 class OrientationPlugin(Extension):
     def __init__(self):
         super().__init__()
@@ -35,7 +47,10 @@ class OrientationPlugin(Extension):
         self.addMenuItem(i18n_catalog.i18n("Calculate extended optimal printing orientation"), self.doExtendedAutoOrientiation)
         self.addMenuItem("", lambda: None)
         self.addMenuItem(i18n_catalog.i18nc("@item:inmenu", "Rotate in the main direction (X)"), self.rotateMainDirection)
+        self.addMenuItem(i18n_catalog.i18nc("@item:inmenu", "Rotate the side direction (X)"), self.rotateSideDirection)
         self.addMenuItem(" ", lambda: None)
+        self.addMenuItem(i18n_catalog.i18nc("@item:inmenu", "Reinit Rotation"), self.resetRotation)
+        self.addMenuItem("  ", lambda: None)
         self.addMenuItem(i18n_catalog.i18n("Modify Settings"), self.showPopup)
         
         self._message = Message(title=i18n_catalog.i18nc("@info:title", "Orientation Plugin"))
@@ -122,24 +137,72 @@ class OrientationPlugin(Extension):
 
     def _getSelectedNodes(self, force_single = False) -> List[SceneNode]:
         self._message.hide()
-        selection = Selection.getAllSelectedObjects()[:]
+        _selection = Selection.getAllSelectedObjects()[:]
         if force_single:
-            if len(selection) == 1:
-                return selection[:]
+            if len(_selection) == 1:
+                return _selection[:]
 
             self._message.setText(i18n_catalog.i18nc("@info:status", "No object selected to orient. Please select one object and try again."))
             self._message._message_type = Message.MessageType.ERROR
         else:
-            if len(selection) >= 1:
-                return selection[:]
+            if len(_selection) >= 1:
+                return _selection[:]
 
             self._message.setText(i18n_catalog.i18nc("@info:status", "No objects selected to orient. Please select one or more objects and try again."))
             self._message._message_type = Message.MessageType.ERROR
             
         self._message.show()
         return []
+
+    def resetRotation(self) -> None:
+        """Reset the orientation of the mesh(es) to their original orientation(s)"""
+
+        Selection.applyOperation(SetTransformOperation, None, Quaternion(), None)
         
     def rotateMainDirection(self) -> None:
+        nodes_list = self._getSelectedNodes()
+        if not nodes_list:
+            return
+
+        op = GroupedOperation()
+        for node in nodes_list:
+            mesh_data = node.getMeshData()
+            if not mesh_data:
+                continue
+            
+            hull_polygon = node.callDecoration("_compute2DConvexHull")
+            # test but not sure in witch case we have this situation ?
+            if not hull_polygon or hull_polygon.getPoints is None:
+                Logger.log("w", "Object {} cannot be calculated because it has no convex hull.".format(node.getName()))
+                continue
+
+            points=hull_polygon.getPoints()
+            # Get the Rotation Matrix     
+            # Logger.log('d', "Points : \n{}".format(points))                  
+            transform, rectangle = trimesh.bounds.oriented_bounds_2D(points) 
+
+            # Change Transfo data
+            # Don't ask me Why just test and try not sure of the validity of oriented_bounds_2D by trimesh 
+            t = Matrix()
+            Vect = [transform[1][1],0,transform[0][1]]
+            t.setColumn(0,Vect)
+            Vect = [transform[1][0],0,transform[0][0]]
+            t.setColumn(2,Vect)
+
+            #local_transformation.setColumn(1,transform[1])
+            local_transformation = Matrix()
+            local_transformation.multiply(t)
+            local_transformation.multiply(node.getLocalTransformation())  
+
+            # Log for debugging and Analyse           
+            # Logger.log('d', "Local_transformation     :\n{}".format(node.getLocalTransformation())) 
+            # Logger.log('d', "TransformMatrixOperation :\n{}".format(local_transformation))   
+            # node.setTransformation(local_transformation)            
+            op.addOperation(SetTransformMatrixOperation(node, local_transformation))
+
+        op.push()
+
+    def rotateSideDirection(self) -> None:
         nodes_list = self._getSelectedNodes()
         if not nodes_list:
             return
@@ -189,9 +252,9 @@ class OrientationPlugin(Extension):
             deganGl = anGl/numpy.pi*180
             
             # For debuging output the vector director and the Angle ( in radians and degree)
-            Logger.log('d', "s_lg   : {}".format(s_lg))
-            Logger.log('d', "Angle : {} Angle° : {}".format(anGl,deganGl)) 
-            # Check for direction according to the DOT product with Y
+            # Logger.log('d', "s_lg   : {}".format(s_lg))
+            # Logger.log('d', "Angle : {} Angle° : {}".format(anGl,deganGl)) 
+
             dv=self._dot_vector(vectY,(s_lg.x, s_lg.y, 0))
             Logger.log('d', "Dot vector : {}".format(dv))  
             if dv > 0 :
@@ -206,15 +269,16 @@ class OrientationPlugin(Extension):
             rotation = Matrix()
             # setByRotationAxis or rotateByAxis ?  don't think there is a difference
             rotation.setByRotationAxis(direction*anGl, Vector(0, 1, 0))
-            Logger.log('d', "Rotation                 :\n{}".format(rotation))
+            # Logger.log('d', "Rotation                 :\n{}".format(rotation))
             
             # Change Transfo data
             local_transformation = Matrix()      
             local_transformation.multiply(rotation)
             local_transformation.multiply(node.getLocalTransformation()) 
             # Log for debugging and Analyse           
-            Logger.log('d', "Local_transformation    :\n{}".format(node.getLocalTransformation())) 
-            Logger.log('d', "TransformMatrixOperation :\n{}".format(local_transformation))                       
+            # Logger.log('d', "Local_transformation     :\n{}".format(node.getLocalTransformation())) 
+            # Logger.log('d', "TransformMatrixOperation :\n{}".format(local_transformation))   
+            # node.setTransformation(local_transformation)            
             op.addOperation(SetTransformMatrixOperation(node, local_transformation))
 
         op.push()
