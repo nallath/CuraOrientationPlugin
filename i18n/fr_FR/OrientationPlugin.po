@@ -57,12 +57,12 @@ msgctxt "@info:status"
 msgid "Please select a single model first"
 msgstr "Sélectionnez tout d'abord une pièce"
 
-#: AutoRotateTool.py:126 AutoRotateTool.py:144
+#: OrientationPlugin.py:126 OrientationPlugin.py:144
 msgctxt "@info:status"
 msgid "Please select one or more models first"
 msgstr "Sélectionnez tout d'abord des pièces"
 
-#: AutoRotateTool.py:324
+#: OrientationPlugin.py:324
 msgctxt "@info:status"
 msgid ""
 "No objects selected to orient. Please select one or more objects and try "
