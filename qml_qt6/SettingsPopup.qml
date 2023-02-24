@@ -25,13 +25,15 @@ UM.Dialog
         }
     }
 
-    title: "Auto orientation plugin settings"
+    title: i18n_catalog.i18nc("@title", "Auto orientation plugin settings")
 
     UM.CheckBox
     {
         checked: boolCheck(UM.Preferences.getValue("OrientationPlugin/do_auto_orientation"))
         onClicked: UM.Preferences.setValue("OrientationPlugin/do_auto_orientation", checked)
 
-        text: "Automatically calculate the orientation for all loaded models"
+        text: i18n_catalog.i18nc("@label", "Automatically calculate the orientation for all loaded models")
     }
+	
+	UM.I18nCatalog { id: i18n_catalog; name: "OrientationPlugin" }
 }
