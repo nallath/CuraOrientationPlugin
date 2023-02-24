@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrientationPlugin\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-24 00:19+0000\n"
+"POT-Creation-Date: 2023-02-24 12:46+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,59 +25,59 @@ msgstr ""
 msgid "Calculate extended optimal printing orientation"
 msgstr ""
 
-#: OrientationPlugin.py:49
+#: OrientationPlugin.py:51
 msgctxt "@item:inmenu"
 msgid "Rotate in the main direction (X)"
 msgstr ""
 
-#: OrientationPlugin.py:50
+#: OrientationPlugin.py:52
 msgctxt "@item:inmenu"
 msgid "Rotate the side direction (X)"
 msgstr ""
 
-#: OrientationPlugin.py:52
+#: OrientationPlugin.py:54
 msgctxt "@item:inmenu"
 msgid "Reinit Rotation"
 msgstr ""
 
-#: OrientationPlugin.py:54
+#: OrientationPlugin.py:56
 msgid "Modify Settings"
 msgstr ""
 
-#: OrientationPlugin.py:56
+#: OrientationPlugin.py:58
 msgctxt "@info:title"
 msgid "Orientation Plugin"
 msgstr ""
 
-#: OrientationPlugin.py:129
+#: OrientationPlugin.py:131
 msgctxt "@info:status"
 msgid ""
 "Auto-Calculating the optimal orientation because auto orientation is enabled"
 msgstr ""
 
-#: OrientationPlugin.py:130 OrientationPlugin.py:326 OrientationPlugin.py:340
+#: OrientationPlugin.py:132 OrientationPlugin.py:328 OrientationPlugin.py:342
 msgctxt "@title"
 msgid "Auto-Orientation"
 msgstr ""
 
-#: OrientationPlugin.py:145
+#: OrientationPlugin.py:147
 msgctxt "@info:status"
 msgid "No object selected to orient. Please select one object and try again."
 msgstr ""
 
-#: OrientationPlugin.py:151
+#: OrientationPlugin.py:153
 msgctxt "@info:status"
 msgid ""
 "No objects selected to orient. Please select one or more objects and try "
 "again."
 msgstr ""
 
-#: OrientationPlugin.py:326
+#: OrientationPlugin.py:328
 msgctxt "@info:status"
 msgid "Calculating the optimal orientation..."
 msgstr ""
 
-#: OrientationPlugin.py:339
+#: OrientationPlugin.py:341
 msgctxt "@info:status"
 msgid "All selected objects have been oriented."
 msgstr ""
