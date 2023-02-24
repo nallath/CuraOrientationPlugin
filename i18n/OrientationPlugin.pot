@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrientationPlugin\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-24 00:07+0000\n"
+"POT-Creation-Date: 2023-02-24 00:17+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -82,12 +82,12 @@ msgctxt "@info:status"
 msgid "All selected objects have been oriented."
 msgstr ""
 
-#: qml_qt6/SettingsPopup.qml:28 qml_qt5/SettingsPopup.qml:27
+#: qml_qt6/SettingsPopup.qml:30 qml_qt5/SettingsPopup.qml:29
 msgctxt "@title"
 msgid "Auto orientation plugin settings"
 msgstr ""
 
-#: qml_qt6/SettingsPopup.qml:35 qml_qt5/SettingsPopup.qml:34
+#: qml_qt6/SettingsPopup.qml:37 qml_qt5/SettingsPopup.qml:36
 msgctxt "@label"
 msgid "Automatically calculate the orientation for all loaded models"
 msgstr ""
