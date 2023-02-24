@@ -46,7 +46,9 @@ class OrientationPlugin(Extension):
         self.addMenuItem(i18n_catalog.i18n("Calculate fast optimal printing orientation"), self.doFastAutoOrientation)
         self.addMenuItem(i18n_catalog.i18n("Calculate extended optimal printing orientation"), self.doExtendedAutoOrientiation)
         self.addMenuItem("", lambda: None)
-        self.addMenuItem(i18n_catalog.i18nc("@item:inmenu", "Rotate in the main direction (X)"), self.rotateMainDirection)
+        # Issue with the trimesh release provided with Cura 4.X
+        if Version(CuraVersion).getMajor() >= 5:
+            self.addMenuItem(i18n_catalog.i18nc("@item:inmenu", "Rotate in the main direction (X)"), self.rotateMainDirection)
         self.addMenuItem(i18n_catalog.i18nc("@item:inmenu", "Rotate the side direction (X)"), self.rotateSideDirection)
         self.addMenuItem(" ", lambda: None)
         self.addMenuItem(i18n_catalog.i18nc("@item:inmenu", "Reinit Rotation"), self.resetRotation)
