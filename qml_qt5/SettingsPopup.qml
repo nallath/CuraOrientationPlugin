@@ -24,6 +24,8 @@ UM.Dialog
         }
     }
 
+    property variant i18n_catalog: UM.I18nCatalog { name: "OrientationPlugin" }
+	
     title: i18n_catalog.i18nc("@title", "Auto orientation plugin settings")
 
     CheckBox
@@ -33,6 +35,4 @@ UM.Dialog
 
         text: i18n_catalog.i18nc("@label", "Automatically calculate the orientation for all loaded models")
     }
-	
-	UM.I18nCatalog { id: i18n_catalog; name: "OrientationPlugin" }
 }
