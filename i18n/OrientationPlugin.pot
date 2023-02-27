@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrientationPlugin\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-27 13:59+0000\n"
+"POT-Creation-Date: 2023-02-27 15:13+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,72 +17,72 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: OrientationPlugin.py:46
+#: OrientationPlugin.py:49
 msgid "Calculate fast optimal printing orientation"
 msgstr ""
 
-#: OrientationPlugin.py:47
+#: OrientationPlugin.py:50
 msgid "Calculate extended optimal printing orientation"
-msgstr ""
-
-#: OrientationPlugin.py:51
-msgctxt "@item:inmenu"
-msgid "Rotate in the main direction (X)"
-msgstr ""
-
-#: OrientationPlugin.py:52
-msgctxt "@item:inmenu"
-msgid "Rotate the side direction (X)"
 msgstr ""
 
 #: OrientationPlugin.py:54
 msgctxt "@item:inmenu"
+msgid "Rotate in the main direction (X)"
+msgstr ""
+
+#: OrientationPlugin.py:55
+msgctxt "@item:inmenu"
+msgid "Rotate the side direction (X)"
+msgstr ""
+
+#: OrientationPlugin.py:57
+msgctxt "@item:inmenu"
 msgid "Reinit Rotation"
 msgstr ""
 
-#: OrientationPlugin.py:56
+#: OrientationPlugin.py:59
 msgid "Modify Settings"
 msgstr ""
 
-#: OrientationPlugin.py:58
+#: OrientationPlugin.py:61
 msgctxt "@info:title"
 msgid "Orientation Plugin"
 msgstr ""
 
-#: OrientationPlugin.py:131
+#: OrientationPlugin.py:134
 msgctxt "@info:status"
 msgid ""
 "Auto-Calculating the optimal orientation because auto orientation is enabled"
 msgstr ""
 
-#: OrientationPlugin.py:132 OrientationPlugin.py:330 OrientationPlugin.py:347
+#: OrientationPlugin.py:135 OrientationPlugin.py:333 OrientationPlugin.py:350
 msgctxt "@title"
 msgid "Auto-Orientation"
 msgstr ""
 
-#: OrientationPlugin.py:147
+#: OrientationPlugin.py:150
 msgctxt "@info:status"
 msgid "No object selected to orient. Please select one object and try again."
 msgstr ""
 
-#: OrientationPlugin.py:153
+#: OrientationPlugin.py:156
 msgctxt "@info:status"
 msgid ""
 "No objects selected to orient. Please select one or more objects and try "
 "again."
 msgstr ""
 
-#: OrientationPlugin.py:330
+#: OrientationPlugin.py:333
 msgctxt "@info:status"
 msgid "Calculating the optimal orientation..."
 msgstr ""
 
-#: OrientationPlugin.py:344
+#: OrientationPlugin.py:347
 msgctxt "@info:status"
 msgid "All selected objects have been oriented using the extended mode."
 msgstr ""
 
-#: OrientationPlugin.py:346
+#: OrientationPlugin.py:349
 msgctxt "@info:status"
 msgid "All selected objects have been oriented."
 msgstr ""
