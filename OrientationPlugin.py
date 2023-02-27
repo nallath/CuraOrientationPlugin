@@ -43,6 +43,9 @@ if i18n_catalog.hasTranslationLoaded():
 class OrientationPlugin(Extension):
     def __init__(self):
         super().__init__()
+        
+        self._extended_mode = False
+        
         self.addMenuItem(i18n_catalog.i18n("Calculate fast optimal printing orientation"), self.doFastAutoOrientation)
         self.addMenuItem(i18n_catalog.i18n("Calculate extended optimal printing orientation"), self.doExtendedAutoOrientiation)
         self.addMenuItem("", lambda: None)
