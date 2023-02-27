@@ -312,9 +312,11 @@ class OrientationPlugin(Extension):
         return dotv
         
     def doFastAutoOrientation(self):
+        self._extended_mode=False
         self.doAutoOrientation(False)
 
     def doExtendedAutoOrientiation(self):
+        self._extended_mode=True
         self.doAutoOrientation(True)
 
     def doAutoOrientation(self, extended_mode):
@@ -338,6 +340,9 @@ class OrientationPlugin(Extension):
 
         if job.getMessage() is not None:
             job.getMessage().hide()
-            self._message = Message(i18n_catalog.i18nc("@info:status", "All selected objects have been oriented."),
-                                    title=i18n_catalog.i18nc("@title", "Auto-Orientation"), message_type = Message.MessageType.POSITIVE)
+            if self._extended_mode :
+                _text = i18n_catalog.i18nc("@info:status", "All selected objects have been oriented using the extended mode.")
+            else :
+                _text = i18n_catalog.i18nc("@info:status", "All selected objects have been oriented.")
+            self._message = Message(_text, title=i18n_catalog.i18nc("@title", "Auto-Orientation"), message_type = Message.MessageType.POSITIVE)
             self._message.show()
