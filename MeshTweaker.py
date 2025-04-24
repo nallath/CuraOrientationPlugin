@@ -144,7 +144,7 @@ class Tweak:
         del self.mesh
 
         # evaluate the best alignments and calculate the rotation parameters
-        results = np.array(results)
+        results = np.array(results, dtype=object)
         best_results = list(results[results[:, 4].argsort()])  # [:5]]  # previously, the best 5 alignments were stored
 
         for i, align in enumerate(best_results):
